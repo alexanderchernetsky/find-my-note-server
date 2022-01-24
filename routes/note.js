@@ -1,4 +1,5 @@
 const express = require("express");
+const moment = require("moment");
 
 // noteRoutes is an instance of the express router.
 // We use it to define our routes.
@@ -28,12 +29,35 @@ noteRoutes.route("/notes").get( (req, res) => {
         });
 });
 
-// This section will help you CREATE a new note.
-noteRoutes.route("/note").post( (req, response) => {
+const getNextCount= async (userId) => {
     let db_connect = dbo.getDb();
 
-    // todo: add note_id, user_id, date_created, last_updated
+    try {
+        const response = await db_connect.collection("note_counter").findOneAndUpdate(
+            { _id: userId },
+            { $inc: { count: 1 } }
+        );
+
+        return response.value.count + 1;
+    } catch (error) {
+        console.error(`Failed to increment the counter: ${error}`);
+    }
+}
+
+// This section will help you CREATE a new note.
+noteRoutes.route("/note").post( async (req, response) => {
+    let db_connect = dbo.getDb();
+
+    const time = moment.utc().format();
+
+    // todo: remove hardcoded id
+    const nextCount = await getNextCount(req.body.user_id || 1);
+
     let newNote = {
+        note_id: nextCount,
+        user_id: req.body.user_id,
+        date_created: time,
+        last_updated: time,
         heading: req.body.heading,
         text: req.body.text,
         tags: req.body.tags,
@@ -45,7 +69,8 @@ noteRoutes.route("/note").post( (req, response) => {
             if (err) {
                 throw err;
             }
-            console.log("POST /note result:", newNote);
+            console.log("POST /note newNote:", newNote);
+            res.note = newNote;
             response.json(res);
     });
 });
@@ -54,14 +79,16 @@ noteRoutes.route("/note").post( (req, response) => {
 noteRoutes.route("/note/:id").patch( (req, response) => {
     let db_connect = dbo.getDb();
 
+    const time = moment.utc().format();
+
     let myQuery = { id: req.params.id };
 
-    // todo: add note_id, user_id, date_created, last_updated
     let newValues = {
         $set: {
             heading: req.body.heading,
             text: req.body.text,
             tags: req.body.tags,
+            last_updated: time
         },
     };
 
@@ -71,7 +98,7 @@ noteRoutes.route("/note/:id").patch( (req, response) => {
             if (err) {
                 throw err;
             }
-            console.log("PATCH /note result:", newValues);
+            console.log("PATCH /note new values:", newValues);
             response.json(res);
         });
 });
