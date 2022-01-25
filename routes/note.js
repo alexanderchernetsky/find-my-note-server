@@ -12,14 +12,26 @@ const dbo = require("../db/connection");
 // This help convert the id from string to ObjectId for the _id.
 const ObjectId = require("mongodb").ObjectId;
 
-// todo: add search by words & tags
+
 // This section will help you GET a list of all the notes.
 noteRoutes.route("/notes").get( (req, res) => {
     let db_connect = dbo.getDb("find_my_note_db");
 
+    let dbQuery = {};
+
+    const searchString = req.query.search;
+    const tag = req.query.tag;
+
+    if (searchString) {
+        dbQuery = { $text: { $search: searchString } }
+    }
+    if (tag) {
+        dbQuery = { tags: `#${tag}` }
+    }
+
     db_connect
         .collection("notes")
-        .find({})
+        .find(dbQuery)
         .toArray((err, result) => {
             if (err) {
                 throw err;
@@ -49,6 +61,8 @@ noteRoutes.route("/note").post( async (req, response) => {
     let db_connect = dbo.getDb();
 
     const time = moment.utc().format();
+
+    // todo: add check if heading, text, tags are included OR status 400
 
     // todo: remove hardcoded id
     const nextCount = await getNextCount(req.body.user_id || 1);
