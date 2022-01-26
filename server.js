@@ -10,7 +10,10 @@ const port = process.env.PORT || 3001;
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// use API routes
 app.use(require("./routes/note"));
+app.use(require("./routes/tag"));
 
 // get driver connection
 const db = require("./db/connection");

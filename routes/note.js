@@ -3,7 +3,7 @@ const moment = require("moment");
 
 // noteRoutes is an instance of the express router.
 // We use it to define our routes.
-// The router will be added as a middleware and will take control of requests starting with path /record.
+// The router will be added as a middleware and will take control of requests starting with path /note or /notes.
 const noteRoutes = express.Router();
 
 // This will help us connect to the database
@@ -24,6 +24,8 @@ noteRoutes.route("/notes").get( (req, res) => {
     if (tag) {
         dbQuery = { tags: `#${tag}` }
     }
+
+    // todo: add results count
 
     db_connect
         .collection("notes")
