@@ -9,13 +9,9 @@ const noteRoutes = express.Router();
 // This will help us connect to the database
 const dbo = require("../db/connection");
 
-// This help convert the id from string to ObjectId for the _id.
-const ObjectId = require("mongodb").ObjectId;
-
-
 // This section will help you GET a list of all the notes.
 noteRoutes.route("/notes").get( (req, res) => {
-    let db_connect = dbo.getDb("find_my_note_db");
+    const db_connect = dbo.getDb("find_my_note_db");
 
     let dbQuery = {};
 
@@ -42,7 +38,7 @@ noteRoutes.route("/notes").get( (req, res) => {
 });
 
 const getNextCount= async (userId) => {
-    let db_connect = dbo.getDb();
+    const db_connect = dbo.getDb();
 
     try {
         const response = await db_connect.collection("note_counter").findOneAndUpdate(
@@ -58,11 +54,13 @@ const getNextCount= async (userId) => {
 
 // This section will help you CREATE a new note.
 noteRoutes.route("/note").post( async (req, response) => {
-    let db_connect = dbo.getDb();
+    const db_connect = dbo.getDb();
 
     const time = moment.utc().format();
 
-    // todo: add check if heading, text, tags are included OR status 400
+    if (!req.body.heading || !req.body.text || !req.body.tags.length) {
+        response.status(400).json({message: 'Fields heading, text, tags are required to create a new note!'});
+    }
 
     // todo: remove hardcoded id
     const nextCount = await getNextCount(req.body.user_id || 1);
@@ -91,47 +89,54 @@ noteRoutes.route("/note").post( async (req, response) => {
 
 // This section will help you UPDATE a note by id.
 noteRoutes.route("/note/:id").patch( (req, response) => {
-    let db_connect = dbo.getDb();
+    const db_connect = dbo.getDb();
+
+    if (!req.body.heading || !req.body.text || !req.body.tags.length) {
+        response.status(400).json({message: 'Fields heading, text, tags are required to update an existing note!'});
+    }
 
     const time = moment.utc().format();
 
-    let myQuery = { id: req.params.id };
+    const findQuery = { note_id: parseInt(req.params.id) };
 
-    let newValues = {
-        $set: {
-            heading: req.body.heading,
-            text: req.body.text,
-            tags: req.body.tags,
-            last_updated: time
-        },
+    const newValues = {
+        heading: req.body.heading,
+        text: req.body.text,
+        tags: req.body.tags,
+        last_updated: time
+    };
+
+    let setValuesQuery = {
+        $set: newValues,
     };
 
     db_connect
         .collection("notes")
-        .updateOne(myQuery, newValues, (err, res) => {
+        .updateOne(findQuery, setValuesQuery, (err, res) => {
             if (err) {
                 throw err;
             }
-            console.log("PATCH /note new values:", newValues);
+            res.values = newValues;
+            console.log("PATCH /note response:", res);
             response.json(res);
         });
 });
 
 
 // This section will help you DELETE a note
-noteRoutes.route("/notes/:id").delete((req, response) => {
-    let db_connect = dbo.getDb();
+noteRoutes.route("/note/:id").delete((req, response) => {
+    const db_connect = dbo.getDb();
 
-    let myQuery = { id: req.params.id };
+    let findQuery = { note_id: parseInt(req.params.id) };
 
     db_connect
         .collection("notes")
-        .deleteOne(myQuery, (err, obj) => {
+        .deleteOne(findQuery, (err, res) => {
             if (err) {
                 throw err;
             }
-            console.log("1 document deleted");
-            response.status(obj);
+            console.log(`Document note_id ${req.params.id} has been deleted`, res);
+            response.json(res);
     });
 });
 
