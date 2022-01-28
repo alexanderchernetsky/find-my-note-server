@@ -1,11 +1,13 @@
 const express = require("express");
 
+const authorization = require("../auth/authorization");
+
 const tagRoutes = express.Router();
 
 const dbo = require("../db/connection");
 
 // This API route will help you GET a list of all the unique tags.
-tagRoutes.route("/tags").get( (req, res) => {
+tagRoutes.route("/tags").get(authorization, (req, res) => {
     const db_connect = dbo.getDb("find_my_note_db");
 
     db_connect

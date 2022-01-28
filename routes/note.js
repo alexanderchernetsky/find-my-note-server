@@ -9,8 +9,11 @@ const noteRoutes = express.Router();
 // This will help us connect to the database
 const dbo = require("../db/connection");
 
+// should be added to each api route to check the token
+const authorization = require("../auth/authorization");
+
 // This section will help you GET a list of all the notes.
-noteRoutes.route("/notes").get( (req, res) => {
+noteRoutes.route("/notes").get(authorization, (req, res) => {
     const db_connect = dbo.getDb("find_my_note_db");
 
     let dbQuery = {};
@@ -55,7 +58,7 @@ const getNextCount= async (userId) => {
 }
 
 // This section will help you CREATE a new note.
-noteRoutes.route("/note").post( async (req, response) => {
+noteRoutes.route("/note").post(authorization, async (req, response) => {
     const db_connect = dbo.getDb();
 
     const time = moment.utc().format();
@@ -90,7 +93,7 @@ noteRoutes.route("/note").post( async (req, response) => {
 });
 
 // This section will help you UPDATE a note by id.
-noteRoutes.route("/note/:id").patch( (req, response) => {
+noteRoutes.route("/note/:id").patch(authorization, (req, response) => {
     const db_connect = dbo.getDb();
 
     if (!req.body.heading || !req.body.text || !req.body.tags.length) {
@@ -126,7 +129,7 @@ noteRoutes.route("/note/:id").patch( (req, response) => {
 
 
 // This section will help you DELETE a note
-noteRoutes.route("/note/:id").delete((req, response) => {
+noteRoutes.route("/note/:id").delete(authorization, (req, response) => {
     const db_connect = dbo.getDb();
 
     let findQuery = { note_id: parseInt(req.params.id) };

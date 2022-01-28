@@ -1,17 +1,24 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-
+const cookieParser = require("cookie-parser");
 
 dotenv.config({ path: "./config.env" });
 
 const port = process.env.PORT || 3001;
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    credentials: true,
+    origin: ['http://localhost:3000'] // necessary to use cookies
+}));
 app.use(express.json());
 
+// use cookie parser, should go before api routes
+app.use(cookieParser());
+
 // use API routes
+app.use(require("./routes/login"));
 app.use(require("./routes/note"));
 app.use(require("./routes/tag"));
 
