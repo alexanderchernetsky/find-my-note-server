@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
+const swaggerUi = require("swagger-ui-express");
 
 dotenv.config({ path: "./config.env" });
 
@@ -24,6 +25,10 @@ app.use(require("./routes/tag"));
 
 // get driver connection
 const db = require("./db/connection");
+
+// add swagger
+const specs = require('./swagger/index.json');
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(port, () => {
     // perform a database connection when server starts

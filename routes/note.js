@@ -30,6 +30,8 @@ noteRoutes.route("/notes").get(authorization, (req, res) => {
 
     // todo: add results count
 
+    // todo: add notes for user with note.user_id === user_id
+
     db_connect
         .collection("notes")
         .find(dbQuery)
