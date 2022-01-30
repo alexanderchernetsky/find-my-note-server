@@ -48,12 +48,27 @@ const getNextCount= async (userId) => {
     const db_connect = dbo.getDb();
 
     try {
-        const response = await db_connect.collection("note_counter").findOneAndUpdate(
-            { _id: userId },
-            { $inc: { count: 1 } }
-        );
+        const resp = await db_connect.collection("note_counter").findOne({_id: userId}).then(async user => {
+            if (user) {
+                const response = await db_connect.collection("note_counter").findOneAndUpdate(
+                    { _id: userId },
+                    { $inc: { count: 1 } }
+                );
 
-        return response.value.count + 1;
+                return response.value.count + 1;
+            } else {
+                const response = await db_connect.collection("note_counter").insertOne(
+                    {
+                        _id: userId,
+                        count: 1
+                    }
+                );
+
+                return 1;
+            }
+        });
+
+        return resp;
     } catch (error) {
         console.error(`Failed to increment the counter: ${error}`);
     }
@@ -69,8 +84,9 @@ noteRoutes.route("/note").post(authorization, async (req, response) => {
         response.status(400).json({message: 'Fields heading, text, tags are required to create a new note!'});
     }
 
-    // todo: remove hardcoded id
-    const nextCount = await getNextCount(req.body.user_id || 1);
+    const nextCount = await getNextCount(req.body.user_id);
+
+    // todo: send an error if no nextCount
 
     let newNote = {
         note_id: nextCount,
