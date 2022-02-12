@@ -8,7 +8,10 @@ const authorization = (req, res, next) => {
 
     if (!token) {
         console.error("No authorization token!");
-        return res.sendStatus(403);
+        // a 401 Unauthorized response should be used for missing or bad authentication,
+        // and a 403 Forbidden response should be used afterwards, when the user is authenticated
+        // but isn't authorized to perform the requested operation on the given resource.
+        return res.sendStatus(401);
     }
     try {
         const data = jwt.verify(token, process.env.JWT_SECRET);
@@ -17,9 +20,10 @@ const authorization = (req, res, next) => {
     } catch (err) {
         console.error("Authorization error", err);
         if (err.name === TOKEN_EXPIRED_ERROR_NAME) {
-            return res.redirect("/login")
+            // todo: check this case
+            return res.redirect('/logout');
         }
-        return res.sendStatus(403);
+        return res.sendStatus(401);
     }
 };
 

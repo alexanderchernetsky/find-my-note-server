@@ -15,6 +15,31 @@
     }
   ],
   "paths": {
+    "/tags": {
+      "get": {
+        "summary": "to get all tags",
+        "tags": [
+          "tags"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/tags"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+
     "/notes": {
       "get": {
         "summary": "to get all notes",
@@ -47,31 +72,6 @@
       }
     },
 
-    "/tags": {
-      "get": {
-        "summary": "to get all tags",
-        "tags": [
-          "tags"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/tags"
-                }
-              }
-            }
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
-      }
-    },
-
     "/note": {
       "post": {
         "summary": "to create a new note",
@@ -84,7 +84,25 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/new_note_request_body"
+                "type": "object",
+                "description": "A body of the new note request",
+                "properties": {
+                  "user_id": {
+                    "type": "string"
+                  },
+                  "heading": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
               }
             }
           }
@@ -105,11 +123,130 @@
           }
         }
       }
+    },
+
+    "/note/{id}": {
+      "patch": {
+        "summary": "to update an existing note",
+        "tags": [
+          "notes"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "description": "A JSON object containing updated note information",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "A body of the update note request",
+                "properties": {
+                  "heading": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "A body of the update note response",
+                  "properties": {
+                    "values": {
+                      "type": "object",
+                      "properties": {
+                        "last_updated": {
+                          "type": "string"
+                        },
+                        "heading": {
+                          "type": "string"
+                        },
+                        "text": {
+                          "type": "string"
+                        },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+
+      "delete": {
+        "summary": "to delete an existing note",
+        "tags": [
+          "notes"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/success_message"
+                }
+              }
+            }
+          },
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
     }
+
+
   },
 
   "components": {
     "parameters": {
+      "id": {
+        "name": "id",
+        "in": "path",
+        "description": "The id of the entity",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "search": {
         "name": "search",
         "in": "query",
@@ -127,15 +264,6 @@
         "schema": {
           "type": "string"
         }
-      },
-      "sportId": {
-        "name": "sportId",
-        "in": "path",
-        "description": "The ID of the sport",
-        "required": true,
-        "schema": {
-          "type": "integer"
-        }
       }
     },
     "responses": {
@@ -147,6 +275,9 @@
       },
       "InternalServerError": {
         "description": "Internal Server Error"
+      },
+      "NoContent": {
+        "description": "Indicates that the server has successfully fulfilled the request but there is no content to send in the response payload body"
       }
     },
     "schemas": {
@@ -182,86 +313,30 @@
           }
         }
       },
+
       "notes": {
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/note"
         }
       },
+
       "tags": {
         "type": "array",
         "items": {
           "type": "string"
         }
       },
-      "new_note_request_body": {
-        "type": "object",
-        "description": "A body of the new note request",
-        "properties": {
-          "user_id": {
-            "type": "string"
-          },
-          "heading": {
-            "type": "string"
-          },
-          "text": {
-            "type": "string"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "Sport": {
+
+      "success_message": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "title": {
+          "message": {
             "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "liveCount": {
-            "type": "integer"
-          },
-          "upcomingCount": {
-            "type": "integer"
-          },
-          "liveStreamEventsCount": {
-            "type": "integer"
-          },
-          "upcomingStreamEventsCount": {
-            "type": "integer"
-          },
-          "hasPrematchEvents": {
-            "type": "boolean"
-          },
-          "hasFeaturedEvents": {
-            "type": "boolean"
-          },
-          "hasCoupons": {
-            "type": "boolean"
-          },
-          "hasSpecials": {
-            "type": "boolean"
-          },
-          "tournaments": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
           }
         }
       }
+
     }
   }
 }

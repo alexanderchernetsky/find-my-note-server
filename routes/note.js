@@ -81,7 +81,7 @@ noteRoutes.route("/note").post(authorization, async (req, response) => {
     const time = moment.utc().format();
 
     if (!req.body.user_id || !req.body.heading || !req.body.text || !req.body.tags.length) {
-        console.info('Failed attempt to create a new note', req.body);
+        console.error('Failed attempt to create a new note', req.body);
         response.status(400).json({message: 'Fields user_id, heading, text, tags are required to create a new note!'});
         return;
     }
@@ -117,7 +117,9 @@ noteRoutes.route("/note/:id").patch(authorization, (req, response) => {
     const db_connect = dbo.getDb();
 
     if (!req.body.heading || !req.body.text || !req.body.tags.length) {
-        response.status(400).json({message: 'Fields heading, text, tags are required to update an existing note!'});
+        console.error('Failed attempt to update a note', req.body);
+        response.status(400).json({message: 'Fields user_id, heading, text, tags are required to update an existing note!'});
+        return;
     }
 
     const time = moment.utc().format();
@@ -160,8 +162,17 @@ noteRoutes.route("/note/:id").delete(authorization, (req, response) => {
             if (err) {
                 throw err;
             }
-            console.log(`Document note_id ${req.params.id} has been deleted`, res);
-            response.json(res);
+
+            if (!res.deletedCount) {
+                console.error(`Nothing has been deleted!`);
+                // If you DELETE something that doesn't exist, you should just return a 204 (even if the resource never existed).
+                // The client wanted the resource gone and it is gone.
+                // Returning a 404 is exposing internal processing that is unimportant to the client and will result in an unnecessary error condition.
+                response.sendStatus(204);
+            } else {
+                console.log(`Document note_id ${req.params.id} has been deleted!`, res);
+                response.json({message: `Document note_id ${req.params.id} has been deleted!`});
+            }
     });
 });
 
