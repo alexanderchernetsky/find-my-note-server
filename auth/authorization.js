@@ -7,6 +7,7 @@ const authorization = (req, res, next) => {
     const token = req.cookies.access_token;
 
     if (!token) {
+        console.error("No authorization token!");
         return res.sendStatus(403);
     }
     try {
@@ -14,6 +15,7 @@ const authorization = (req, res, next) => {
         req.userId = data.login;
         return next();
     } catch (err) {
+        console.error("Authorization error", err);
         if (err.name === TOKEN_EXPIRED_ERROR_NAME) {
             return res.redirect("/login")
         }

@@ -80,8 +80,10 @@ noteRoutes.route("/note").post(authorization, async (req, response) => {
 
     const time = moment.utc().format();
 
-    if (!req.body.heading || !req.body.text || !req.body.tags.length) {
-        response.status(400).json({message: 'Fields heading, text, tags are required to create a new note!'});
+    if (!req.body.user_id || !req.body.heading || !req.body.text || !req.body.tags.length) {
+        console.info('Failed attempt to create a new note', req.body);
+        response.status(400).json({message: 'Fields user_id, heading, text, tags are required to create a new note!'});
+        return;
     }
 
     const nextCount = await getNextCount(req.body.user_id);

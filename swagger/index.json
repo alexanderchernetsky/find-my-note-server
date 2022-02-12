@@ -17,7 +17,7 @@
   "paths": {
     "/notes": {
       "get": {
-        "summary": "notes",
+        "summary": "to get all notes",
         "tags": [
           "notes"
         ],
@@ -45,138 +45,223 @@
           }
         }
       }
-    }
-  },
-    "components": {
-      "parameters": {
-        "search": {
-          "name": "search",
-          "in": "query",
-          "description": "The search string to use for search in a DB",
-          "required": false,
-          "schema": {
-            "type": "string"
+    },
+
+    "/tags": {
+      "get": {
+        "summary": "to get all tags",
+        "tags": [
+          "tags"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/tags"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
           }
-        },
-        "tag": {
-          "name": "tag",
-          "in": "query",
-          "description": "The tag to use for search in a DB",
-          "required": false,
-          "schema": {
-            "type": "string"
-          }
-        },
-        "sportId": {
-          "name": "sportId",
-          "in": "path",
-          "description": "The ID of the sport",
+        }
+      }
+    },
+
+    "/note": {
+      "post": {
+        "summary": "to create a new note",
+        "tags": [
+          "notes"
+        ],
+        "requestBody": {
+          "description": "A JSON object containing new note information",
           "required": true,
-          "schema": {
-            "type": "integer"
-          }
-        }
-      },
-      "responses": {
-        "BadRequest": {
-          "description": "Bad Request"
-        },
-        "NotFoundError": {
-          "description": "Not Found Error"
-        },
-        "InternalServerError": {
-          "description": "Internal Server Error"
-        }
-      },
-      "schemas": {
-        "tag": {
-          "type": "string"
-        },
-        "note": {
-          "type": "object",
-          "properties": {
-            "_id": {
-              "type": "string"
-            },
-            "note_id": {
-              "type": "integer"
-            },
-            "user_id": {
-              "type": "integer"
-            },
-            "text": {
-              "type": "string"
-            },
-            "last_updated": {
-              "type": "string"
-            },
-            "date_created": {
-              "type": "string"
-            },
-            "heading":{
-              "type": "string"
-            },
-            "tags": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/tag"
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/new_note_request_body"
               }
             }
           }
         },
-        "notes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/components/schemas/note"
-          }
-        },
-        "Sport": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "integer"
-            },
-            "title": {
-              "type": "string"
-            },
-            "slug": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "liveCount": {
-              "type": "integer"
-            },
-            "upcomingCount": {
-              "type": "integer"
-            },
-            "liveStreamEventsCount": {
-              "type": "integer"
-            },
-            "upcomingStreamEventsCount": {
-              "type": "integer"
-            },
-            "hasPrematchEvents": {
-              "type": "boolean"
-            },
-            "hasFeaturedEvents": {
-              "type": "boolean"
-            },
-            "hasCoupons": {
-              "type": "boolean"
-            },
-            "hasSpecials": {
-              "type": "boolean"
-            },
-            "tournaments": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/note"
+                }
               }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "parameters": {
+      "search": {
+        "name": "search",
+        "in": "query",
+        "description": "The search string to use for search in a DB",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "tag": {
+        "name": "tag",
+        "in": "query",
+        "description": "The tag to use for search in a DB",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "sportId": {
+        "name": "sportId",
+        "in": "path",
+        "description": "The ID of the sport",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad Request"
+      },
+      "NotFoundError": {
+        "description": "Not Found Error"
+      },
+      "InternalServerError": {
+        "description": "Internal Server Error"
+      }
+    },
+    "schemas": {
+      "note": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "note_id": {
+            "type": "integer"
+          },
+          "user_id": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "last_updated": {
+            "type": "string"
+          },
+          "date_created": {
+            "type": "string"
+          },
+          "heading":{
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "notes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/note"
+        }
+      },
+      "tags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "new_note_request_body": {
+        "type": "object",
+        "description": "A body of the new note request",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "heading": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Sport": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "liveCount": {
+            "type": "integer"
+          },
+          "upcomingCount": {
+            "type": "integer"
+          },
+          "liveStreamEventsCount": {
+            "type": "integer"
+          },
+          "upcomingStreamEventsCount": {
+            "type": "integer"
+          },
+          "hasPrematchEvents": {
+            "type": "boolean"
+          },
+          "hasFeaturedEvents": {
+            "type": "boolean"
+          },
+          "hasCoupons": {
+            "type": "boolean"
+          },
+          "hasSpecials": {
+            "type": "boolean"
+          },
+          "tournaments": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
             }
           }
         }
       }
     }
   }
+}

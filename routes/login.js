@@ -2,7 +2,6 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcryptjs');
 
-const authorization = require("../auth/authorization");
 const dbo = require("../db/connection");
 
 const loginRoutes = express.Router();
@@ -63,9 +62,9 @@ loginRoutes.post("/login", (req, res) => {
                 // if user does not exist then return status 400
                 if (!user) return res.status(400).json({ message: "User with such email does not exist!" })
 
-                // if user exist than compare password
-                // password comes from the fe request
-                // user.password comes from the database
+                // if user exist - compares passwords
+                // 'password' comes from the FE request
+                // 'user.password' comes from the database
                 bcrypt.compare(password, user.password, (err, data) => {
                     if (err) throw err;
                     //if both match than you can do anything
@@ -93,7 +92,7 @@ loginRoutes.post("/login", (req, res) => {
     }
 });
 
-loginRoutes.get("/logout", authorization, (req, res) => {
+loginRoutes.get("/logout", (req, res) => {
     return res
         .clearCookie("access_token")
         .status(200)
