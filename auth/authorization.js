@@ -1,8 +1,5 @@
 const jwt = require("jsonwebtoken");
 
-const TOKEN_EXPIRED_ERROR_NAME = 'TokenExpiredError';
-
-
 const authorization = (req, res, next) => {
     const token = req.cookies.access_token;
 
@@ -18,11 +15,7 @@ const authorization = (req, res, next) => {
         req.userId = data.login;
         return next();
     } catch (err) {
-        console.error("Authorization error", err);
-        if (err.name === TOKEN_EXPIRED_ERROR_NAME) {
-            // todo: check this case
-            return res.redirect('/logout');
-        }
+        console.error("Authorization error", err); // e.g. TokenExpiredError
         return res.sendStatus(401);
     }
 };

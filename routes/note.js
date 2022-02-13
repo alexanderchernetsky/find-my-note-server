@@ -16,31 +16,45 @@ const authorization = require("../auth/authorization");
 noteRoutes.route("/notes").get(authorization, (req, res) => {
     const db_connect = dbo.getDb("find_my_note_db");
 
-    let dbQuery = {};
+    const user_id = req.query.user_id;
+
+    if (!user_id) {
+        console.error('Failed attempt to fetch notes', req.body);
+        res.status(400).json({message: 'Field user_id is required to fetch notes!'});
+        return;
+    }
+
+    let dbQuery = {"user_id": user_id};
 
     const searchString = req.query.search;
     const tag = req.query.tag;
 
     if (searchString) {
-        dbQuery = { $text: { $search: searchString } }
+        dbQuery = { $and: [{$text: { $search: searchString }}, {"user_id": user_id}] }
     }
     if (tag) {
-        dbQuery = { tags: `#${tag}` }
+        dbQuery = { $and: [{tags: `#${tag}`}, {"user_id": user_id}] }
     }
 
-    // todo: add results count
-
-    // todo: add notes for user with note.user_id === user_id
+    const response = {
+        notes: [],
+        count: 0
+    };
 
     db_connect
         .collection("notes")
         .find(dbQuery)
+        .sort({"last_updated": -1})
         .toArray((err, result) => {
             if (err) {
                 throw err;
             }
             console.log("GET /notes result:", result);
-            res.json(result);
+
+            response.notes = result;
+            response.count = result.length;
+
+            res.json(response);
         });
 });
 
