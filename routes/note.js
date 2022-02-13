@@ -41,10 +41,16 @@ noteRoutes.route("/notes").get(authorization, (req, res) => {
         count: 0
     };
 
+    let sortOrder = -1; // desc
+
+    if (req.query.sortBy === 'date' && req.query.sortOrder === 'asc') {
+        sortOrder = 1;
+    }
+
     db_connect
         .collection("notes")
         .find(dbQuery)
-        .sort({"last_updated": -1})
+        .sort({"last_updated": sortOrder})
         .toArray((err, result) => {
             if (err) {
                 throw err;
