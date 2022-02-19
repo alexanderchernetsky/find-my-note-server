@@ -13,10 +13,14 @@ const dbo = require("../db/connection");
 const authorization = require("../auth/authorization");
 
 // This section will help you GET a list of all the notes.
-noteRoutes.route("/notes").get(authorization, (req, res) => {
+noteRoutes.route("/notes").get(authorization, async (req, res) => {
     const db_connect = dbo.getDb("find_my_note_db");
 
     const user_id = req.query.user_id;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const startPage = (page - 1) * limit;
 
     if (!user_id) {
         console.error('Failed attempt to fetch notes', req.body);
@@ -38,7 +42,10 @@ noteRoutes.route("/notes").get(authorization, (req, res) => {
 
     const response = {
         notes: [],
-        count: 0
+        totalNotes: 0,
+        totalPages: 0,
+        currentPage: page,
+        perPage: limit
     };
 
     let sortOrder = -1; // desc
@@ -47,19 +54,26 @@ noteRoutes.route("/notes").get(authorization, (req, res) => {
         sortOrder = 1;
     }
 
+    const totalNotes = await db_connect
+        .collection("notes")
+        .find(dbQuery)
+        .count();
+
+    response.totalNotes = totalNotes;
+    response.totalPages = Math.ceil(totalNotes / limit);
+
     db_connect
         .collection("notes")
         .find(dbQuery)
         .sort({"last_updated": sortOrder})
+        .skip(startPage)
+        .limit(limit)
         .toArray((err, result) => {
             if (err) {
                 throw err;
             }
             console.log("GET /notes result:", result);
-
             response.notes = result;
-            response.count = result.length;
-
             res.json(response);
         });
 });
