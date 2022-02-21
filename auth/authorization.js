@@ -1,10 +1,13 @@
 const jwt = require("jsonwebtoken");
 
+const logTypes = require('../logging/logTypes');
+const logger = require("../logging");
+
 const authorization = (req, res, next) => {
     const token = req.cookies.access_token;
 
     if (!token) {
-        console.error("No authorization token!");
+        logger.log(logTypes.ERROR, "Authorization failed. No authorization token!");
         // a 401 Unauthorized response should be used for missing or bad authentication,
         // and a 403 Forbidden response should be used afterwards, when the user is authenticated
         // but isn't authorized to perform the requested operation on the given resource.
@@ -15,7 +18,7 @@ const authorization = (req, res, next) => {
         req.userId = data.login;
         return next();
     } catch (err) {
-        console.error("Authorization error", err); // e.g. TokenExpiredError
+        logger.log(logTypes.ERROR, `Authorization error. ${err}`); // e.g. TokenExpiredError
         return res.sendStatus(401);
     }
 };

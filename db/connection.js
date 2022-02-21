@@ -1,5 +1,8 @@
 const { MongoClient } = require("mongodb");
 
+const logger = require("../logging");
+const logTypes = require("../logging/logTypes");
+
 const uri = process.env.MONGO_DB_CONNECTION_STR;
 
 const client = new MongoClient(uri, {
@@ -15,7 +18,7 @@ module.exports = {
             // Verify we got a good "db" object
             if (db) {
                 _db = db.db("find_my_note_db");
-                console.log("Successfully connected to MongoDB.");
+                logger.log(logTypes.INFO, "Successfully connected to MongoDB.");
             }
 
             return callback(err);

@@ -11,31 +11,32 @@ const dbo = require("../db/connection");
 
 // should be added to each api route to check the token
 const authorization = require("../auth/authorization");
+const logger = require("../logging");
+const logTypes = require("../logging/logTypes");
 
 // This section will help you GET a list of all the notes.
 noteRoutes.route("/notes").get(authorization, async (req, res) => {
     const db_connect = dbo.getDb("find_my_note_db");
 
     const user_id = req.query.user_id;
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const startPage = (page - 1) * limit;
+    const searchString = req.query.search;
+    const tag = req.query.tag;
 
     if (!user_id) {
-        console.error('Failed attempt to fetch notes', req.body);
+        logger.log(logTypes.ERROR, 'Failed to fetch notes. Field user_id is required!');
         res.status(400).json({message: 'Field user_id is required to fetch notes!'});
         return;
     }
 
     let dbQuery = {"user_id": user_id};
 
-    const searchString = req.query.search;
-    const tag = req.query.tag;
-
     if (searchString) {
         dbQuery = { $and: [{$text: { $search: searchString }}, {"user_id": user_id}] }
     }
+
     if (tag) {
         dbQuery = { $and: [{tags: `#${tag}`}, {"user_id": user_id}] }
     }
@@ -70,10 +71,11 @@ noteRoutes.route("/notes").get(authorization, async (req, res) => {
         .limit(limit)
         .toArray((err, result) => {
             if (err) {
+                logger.log(logTypes.ERROR, `Failed to get notes from the DB: ${err}`);
                 throw err;
             }
-            console.log("GET /notes result:", result);
             response.notes = result;
+            logger.log(logTypes.INFO, `GET /notes response: ${JSON.stringify(response)}`);
             res.json(response);
         });
 });
@@ -104,7 +106,7 @@ const getNextCount= async (userId) => {
 
         return resp;
     } catch (error) {
-        console.error(`Failed to increment the counter: ${error}`);
+        logger.log(logTypes.ERROR, `Failed to increment the counter: ${error}`);
     }
 }
 
@@ -112,46 +114,60 @@ const getNextCount= async (userId) => {
 noteRoutes.route("/note").post(authorization, async (req, response) => {
     const db_connect = dbo.getDb();
 
-    const time = moment.utc().format();
+    const user_id = req.body.user_id;
+    const noteHeading = req.body.heading;
+    const noteText = req.body.text;
+    const tags = req.body.tags;
 
-    if (!req.body.user_id || !req.body.heading || !req.body.text || !req.body.tags.length) {
-        console.error('Failed attempt to create a new note', req.body);
-        response.status(400).json({message: 'Fields user_id, heading, text, tags are required to create a new note!'});
+    if (!user_id || !noteHeading || !noteText || !tags.length) {
+        logger.log(logTypes.ERROR, `Failed attempt to create a new note. Fields user_id, heading, text, tags - are required to create a new note!`);
+        response.status(400).json({message: 'Fields user_id, heading, text, tags - are required to create a new note'});
         return;
     }
 
-    const nextCount = await getNextCount(req.body.user_id);
+    const nextCount = await getNextCount(user_id);
 
-    // todo: send an error if no nextCount
+    if (!nextCount) {
+        logger.log(logTypes.ERROR, `Error! Failed to increment counter. No nextCount!`);
+        response.status(500).json({message: 'Error! Failed to increment counter. No nextCount!'});
+    }
+
+    const time = moment.utc().format();
 
     let newNote = {
         note_id: nextCount,
-        user_id: req.body.user_id,
+        user_id: user_id,
         date_created: time,
         last_updated: time,
-        heading: req.body.heading,
-        text: req.body.text,
-        tags: req.body.tags,
+        heading: noteHeading,
+        text: noteText,
+        tags: tags,
     };
 
     db_connect
         .collection("notes")
         .insertOne(newNote, (err, res) => {
             if (err) {
+                logger.log(logTypes.ERROR, `Error! Failed to insert a new note into DB: ${err}`);
                 throw err;
             }
-            console.log("POST /note newNote:", newNote);
             res.note = newNote;
+            logger.log(logTypes.INFO, `POST /note response: ${JSON.stringify(res)}`);
             response.json(res);
     });
 });
 
+// todo: add user_id to this request
 // This section will help you UPDATE a note by id.
 noteRoutes.route("/note/:id").patch(authorization, (req, response) => {
     const db_connect = dbo.getDb();
 
-    if (!req.body.heading || !req.body.text || !req.body.tags.length) {
-        console.error('Failed attempt to update a note', req.body);
+    const noteHeading = req.body.heading;
+    const noteText = req.body.text;
+    const tags = req.body.tags;
+
+    if (!noteHeading || !noteText || !tags.length) {
+        logger.log(logTypes.ERROR, `Failed attempt to update a note. Fields user_id, heading, text, tags - are required to update a note!`);
         response.status(400).json({message: 'Fields user_id, heading, text, tags are required to update an existing note!'});
         return;
     }
@@ -161,9 +177,9 @@ noteRoutes.route("/note/:id").patch(authorization, (req, response) => {
     const findQuery = { note_id: parseInt(req.params.id) };
 
     const newValues = {
-        heading: req.body.heading,
-        text: req.body.text,
-        tags: req.body.tags,
+        heading: noteHeading,
+        text: noteText,
+        tags: tags,
         last_updated: time
     };
 
@@ -175,36 +191,40 @@ noteRoutes.route("/note/:id").patch(authorization, (req, response) => {
         .collection("notes")
         .updateOne(findQuery, setValuesQuery, (err, res) => {
             if (err) {
+                logger.log(logTypes.ERROR, `Failed attempt to update a note in DB: ${err}`);
                 throw err;
             }
             res.values = newValues;
-            console.log("PATCH /note response:", res);
+            logger.log(logTypes.INFO, `PATCH /note response: ${JSON.stringify(res)}`);
             response.json(res);
         });
 });
 
-
+// todo: add user_id to this request
 // This section will help you DELETE a note
 noteRoutes.route("/note/:id").delete(authorization, (req, response) => {
     const db_connect = dbo.getDb();
 
-    let findQuery = { note_id: parseInt(req.params.id) };
+    const id = parseInt(req.params.id)
+
+    let findQuery = { note_id: id };
 
     db_connect
         .collection("notes")
         .deleteOne(findQuery, (err, res) => {
             if (err) {
+                logger.log(logTypes.ERROR, `Failed attempt to DELETE a note in DB: ${err}`);
                 throw err;
             }
 
             if (!res.deletedCount) {
-                console.error(`Nothing has been deleted!`);
+                logger.log(logTypes.ERROR, `Failed attempt to delete a note with ID ${id}. Nothing has been deleted!`);
                 // If you DELETE something that doesn't exist, you should just return a 204 (even if the resource never existed).
                 // The client wanted the resource gone and it is gone.
                 // Returning a 404 is exposing internal processing that is unimportant to the client and will result in an unnecessary error condition.
                 response.sendStatus(204);
             } else {
-                console.log(`Document note_id ${req.params.id} has been deleted!`, res);
+                logger.log(logTypes.INFO, `Document note_id ${req.params.id} has been deleted! Response: ${JSON.stringify(res)}`);
                 response.json({message: `Document note_id ${req.params.id} has been deleted!`});
             }
     });
