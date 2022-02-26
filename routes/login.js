@@ -50,9 +50,8 @@ loginRoutes.post('/register', (req, response) => {
                     logger.log(logTypes.ERROR, `Failed  to insert a new user in the DB. ${err}`);
                     throw err;
                 }
-                res.user = newUser;
-                logger.log(logTypes.INFO, `POST /register success. User: ${res.user.user_name}. Email: ${res.user.email}`);
-                response.json(res);
+                logger.log(logTypes.INFO, `POST /register success. User: ${newUser.user_name}. Email: ${newUser.email}`);
+                response.json({email: newUser.email, user: newUser.user_name, id: newUser._id});
             })
     }
 })

@@ -15,13 +15,138 @@
     }
   ],
   "paths": {
+    "/register": {
+      "post": {
+        "summary": "to register a new user",
+        "tags": [
+          "register"
+        ],
+        "requestBody": {
+          "description": "A JSON object containing user information",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "A body of the new note request",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "user_name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/register_response"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+
+    "/login": {
+      "post": {
+        "summary": "to log in a  user",
+        "tags": [
+          "login"
+        ],
+        "requestBody": {
+          "description": "A JSON object containing user information",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "A body of the new note request",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/login_response"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+
+    "/logout": {
+      "get": {
+        "summary": "to log out a  user",
+        "tags": [
+          "logout"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "A body of the logout response",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+
     "/tags": {
       "get": {
         "summary": "to get all tags",
         "tags": [
           "tags"
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/user_id"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -48,6 +173,15 @@
         ],
         "parameters": [
           {
+            "$ref": "#/components/parameters/user_id"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
             "$ref": "#/components/parameters/search"
           },
           {
@@ -60,7 +194,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/notes"
+                  "$ref": "#/components/schemas/notes_response"
                 }
               }
             }
@@ -145,6 +279,9 @@
                 "type": "object",
                 "description": "A body of the update note request",
                 "properties": {
+                  "user_id": {
+                    "type": "string"
+                  },
                   "heading": {
                     "type": "string"
                   },
@@ -210,6 +347,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/user_id"
           }
         ],
         "responses": {
@@ -238,6 +378,33 @@
 
   "components": {
     "parameters": {
+      "page": {
+        "name": "page",
+        "in": "query",
+        "description": "The page from pagination",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "description": "How many notes to return in one response",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "user_id": {
+        "name": "user_id",
+        "in": "query",
+        "description": "The id of the user",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "id": {
         "name": "id",
         "in": "path",
@@ -281,6 +448,44 @@
       }
     },
     "schemas": {
+      "register_response": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          }
+        }
+      },
+
+      "login_response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "user_name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+
       "note": {
         "type": "object",
         "properties": {
@@ -291,7 +496,7 @@
             "type": "integer"
           },
           "user_id": {
-            "type": "integer"
+            "type": "string"
           },
           "text": {
             "type": "string"
@@ -318,6 +523,30 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/note"
+        }
+      },
+
+      "notes_response": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "type": "integer"
+          },
+          "perPage": {
+            "type": "integer"
+          },
+          "totalNotes": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/note"
+            }
+          }
         }
       },
 
