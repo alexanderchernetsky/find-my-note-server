@@ -11,7 +11,7 @@ const port = process.env.PORT || 3001;
 const app = express();
 app.use(cors({
     credentials: true,
-    origin: ['http://localhost:3000', 'https://find-my-note-api.herokuapp.com'] // necessary to use cookies
+    origin: ['http://localhost:3000', 'https://find-my-note.vercel.app'] // necessary to use cookies
 }));
 app.use(express.json());
 
