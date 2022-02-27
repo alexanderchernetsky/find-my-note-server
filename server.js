@@ -4,9 +4,14 @@ const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const swaggerUi = require("swagger-ui-express");
 
+const logger = require("./logging");
+const logTypes = require("./logging/logTypes");
+
 dotenv.config({ path: "./config.env" });
 
 const port = process.env.PORT || 3001;
+
+logger.log(logTypes.INFO, `process.env.NODE_ENV ${process.env.NODE_ENV}`);
 
 const app = express();
 app.use(cors({
