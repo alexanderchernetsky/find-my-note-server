@@ -12,6 +12,9 @@
   "servers": [
     {
       "url": "http://localhost:3001/"
+    },
+    {
+      "url": "https://find-my-note-api.herokuapp.com/"
     }
   ],
   "paths": {
