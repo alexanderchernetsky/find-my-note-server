@@ -9,12 +9,12 @@ const logTypes = require("../logging/logTypes");
 const loginRoutes = express.Router();
 
 
-loginRoutes.post('/register', (req, response) => {
-    const email = req.body.email;
-    const password = req.body.password;
-    const user_name = req.body.user_name;
+loginRoutes.post('/register', (request, response) => {
+    const email = request.body.email;
+    const password = request.body.password;
+    const userName = request.body.user_name;
 
-    if (!email || !password || !user_name) {
+    if (!email || !password || !userName) {
         logger.log(logTypes.ERROR, "Failed attempt to register. Fields email, password, user_name are required!");
         response.status(400).json({message: 'Fields email, password, user_name are required!'});
     } else {
@@ -28,7 +28,7 @@ loginRoutes.post('/register', (req, response) => {
         const newUser = {
             email,
             password: hash,
-            user_name
+            userName
         };
 
         db
@@ -50,8 +50,8 @@ loginRoutes.post('/register', (req, response) => {
                     logger.log(logTypes.ERROR, `Failed  to insert a new user in the DB. ${err}`);
                     throw err;
                 }
-                logger.log(logTypes.INFO, `POST /register success. User: ${newUser.user_name}. Email: ${newUser.email}`);
-                response.json({email: newUser.email, user: newUser.user_name, id: newUser._id});
+                logger.log(logTypes.INFO, `POST /register success. User: ${newUser.userName}. Email: ${newUser.email}`);
+                response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
             })
     }
 })
@@ -93,7 +93,7 @@ loginRoutes.post("/login", (req, res) => {
                             expiresIn: 60 * 60 * 2 // seconds*minutes*hours, 2 hours in this case
                         }); // JWT is way for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed.
 
-                        logger.log(logTypes.INFO, `Logged in successfully! User: ${user.user_name}. Email: ${user.email}`);
+                        logger.log(logTypes.INFO, `Logged in successfully! User: ${user.userName}. Email: ${user.email}`);
                         return res
                             .cookie("access_token", token, {
                                 httpOnly: true, // the httpOnly flag ensures that no client-side script can access the cookie other than the server.
@@ -101,7 +101,7 @@ loginRoutes.post("/login", (req, res) => {
                                 sameSite: "none"
                             })
                             .status(200)
-                            .json({message: "Logged in successfully!", user: {email: user.email, user_name: user.user_name, id: user._id}});
+                            .json({message: "Logged in successfully!", user: {email: user.email, userName: user.userName, id: user._id}});
 
                     } else {
                         logger.log(logTypes.ERROR, 'Failed to login. Invalid credentials!');
@@ -112,9 +112,9 @@ loginRoutes.post("/login", (req, res) => {
     }
 });
 
-loginRoutes.get("/logout", (req, res) => {
+loginRoutes.get("/logout", (request, response) => {
     logger.log(logTypes.INFO, 'Logged out successfully!');
-    return res
+    return response
         .clearCookie("access_token")
         .status(200)
         .json({ message: "Successfully logged out!" });

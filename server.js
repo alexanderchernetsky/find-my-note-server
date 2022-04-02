@@ -39,11 +39,11 @@ app.listen(port, () => {
     // perform a database connection when server starts
     db.connectToServer((error) => {
         if (error) {
-            console.error(error);
+            logger.log(logTypes.ERROR, `Error when connecting to the db: ${error}`);
         }
     });
 
-    console.log(`Server is running on port: ${port}`);
+    logger.log(logTypes.INFO, `Server is running on port: ${port}`);
 });
 
 
