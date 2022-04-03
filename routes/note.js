@@ -153,7 +153,7 @@ noteRoutes.route("/note").post(authorization, validateResourceMW(validator.noteS
 
 
 // This section will help you UPDATE a note by id.
-noteRoutes.route("/note/:id").patch(authorization, validateResourceMW(validator.noteSchema), (request, response) => {
+    noteRoutes.route("/note/:id").patch(authorization, validateResourceMW(validator.noteSchema), (request, response) => {
     const dbConnect = dbo.getDb();
 
     const userId = request.body.user_id;
@@ -197,17 +197,12 @@ noteRoutes.route("/note/:id").patch(authorization, validateResourceMW(validator.
 
 
 // This section will help you DELETE a note
-noteRoutes.route("/note/:id").delete(authorization, (request, response) => {
+noteRoutes.route("/note/:id").delete(authorization, validateResourceMW(validator.deleteNoteSchema, true), (request, response) => {
     const dbConnect = dbo.getDb();
 
-    const noteId = parseInt(request.params.id);
     const userId = request.query.user_id;
 
-    if (!userId) {
-        logger.log(logTypes.ERROR, 'Failed to delete a note. Field user_id is required!');
-        response.status(400).json({message: 'Field user_id is required to delete notes!'});
-        return;
-    }
+    const noteId = parseInt(request.params.id);
 
     const findQuery = { $and: [{"note_id": noteId}, {"user_id": userId}] };
 

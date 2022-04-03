@@ -55,11 +55,21 @@ const noteSchema = yup.object().shape({
     tags: yup.array().min(1, 'Tags array should contain at least 1 tag').max(10, 'Tags array should contain less than 10 tags'),
 });
 
+const deleteNoteSchema = yup.object().shape({
+    user_id: userIdValidationRules
+});
+
+const tagSchema = yup.object().shape({
+    user_id: userIdValidationRules
+});
+
 const validator = {
     registerSchema,
     loginSchema,
     getNotesSchema,
-    noteSchema
-}
+    noteSchema,
+    deleteNoteSchema,
+    tagSchema
+};
 
 module.exports = validator;

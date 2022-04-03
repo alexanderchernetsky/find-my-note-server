@@ -7,18 +7,14 @@ const tagRoutes = express.Router();
 const dbo = require("../db/connection");
 const logger = require("../logging");
 const logTypes = require("../logging/logTypes");
+const validator = require("../validation/validator");
+const validateResourceMW = require("../validation/middleware");
 
 // This API route will help you GET a list of all the unique tags.
-tagRoutes.route("/tags").get(authorization, (req, res) => {
+tagRoutes.route("/tags").get(authorization, validateResourceMW(validator.tagSchema, true),(request, response) => {
     const dbConnect = dbo.getDb("find_my_note_db");
 
-    const userId = req.query.user_id;
-
-    if (!userId) {
-        logger.log(logTypes.ERROR, "Failed attempt to fetch tags. Field user_id is required to fetch tags!");
-        res.status(400).json({message: 'Field user_id is required to fetch tags!'});
-        return;
-    }
+    const userId = request.query.user_id;
 
     let dbQuery = {"user_id": userId};
 
@@ -26,12 +22,12 @@ tagRoutes.route("/tags").get(authorization, (req, res) => {
         .collection("notes")
         .distinct("tags", dbQuery, (error, result) => {
             if (error) {
-                logger.log(logTypes.ERROR, "Error! Failed to get tags from the DB.");
+                logger.log(logTypes.ERROR, `Error! Failed to get tags from the DB. ${error}`);
                 throw error;
             }
             logger.log(logTypes.INFO, `GET /tags response ${result}`);
-            res.json(result);
-        })
+            response.json(result);
+        });
 });
 
 module.exports = tagRoutes;
