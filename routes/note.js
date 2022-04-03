@@ -13,9 +13,11 @@ const dbo = require("../db/connection");
 const authorization = require("../auth/authorization");
 const logger = require("../logging");
 const logTypes = require("../logging/logTypes");
+const validator = require("../validation/validator");
+const validateResourceMW = require("../validation/middleware");
 
 // This section will help you GET a list of all the notes.
-noteRoutes.route("/notes").get(authorization, async (req, res) => {
+noteRoutes.route("/notes").get(authorization, validateResourceMW(validator.getNotesSchema, true), async (req, res) => {
     const dbConnect = dbo.getDb("find_my_note_db");
 
     const userId = req.query.user_id;
@@ -25,12 +27,6 @@ noteRoutes.route("/notes").get(authorization, async (req, res) => {
     const tag = req.query.tag;
 
     const startPage = (page - 1) * limit;
-
-    if (!userId) {
-        logger.log(logTypes.ERROR, 'Failed to fetch notes. Field user_id is required!');
-        res.status(400).json({message: 'Field user_id is required to fetch notes!'});
-        return;
-    }
 
     let dbQuery = {"user_id": userId};
 
@@ -110,7 +106,7 @@ const getNextCount= async (userId) => {
 }
 
 // This section will help you CREATE a new note.
-noteRoutes.route("/note").post(authorization, async (req, response) => {
+noteRoutes.route("/note").post(authorization, validateResourceMW(validator.noteSchema), async (req, response) => {
     const dbConnect = dbo.getDb();
 
     const userId = req.body.user_id;
@@ -157,20 +153,15 @@ noteRoutes.route("/note").post(authorization, async (req, response) => {
 
 
 // This section will help you UPDATE a note by id.
-noteRoutes.route("/note/:id").patch(authorization, (request, response) => {
+noteRoutes.route("/note/:id").patch(authorization, validateResourceMW(validator.noteSchema), (request, response) => {
     const dbConnect = dbo.getDb();
 
     const userId = request.body.user_id;
     const noteHeading = request.body.heading;
     const noteText = request.body.text;
     const tags = request.body.tags;
-    const noteId = parseInt(request.params.id);
 
-    if (!noteHeading || !noteText || !tags.length || !userId) {
-        logger.log(logTypes.ERROR, `Failed attempt to update a note. Fields user_id, heading, text, tags - are required to update a note!`);
-        response.status(400).json({message: 'Fields user_id, heading, text, tags are required to update an existing note!'});
-        return;
-    }
+    const noteId = parseInt(request.params.id);
 
     const time = moment.utc().format();
 
@@ -198,7 +189,7 @@ noteRoutes.route("/note/:id").patch(authorization, (request, response) => {
                 logger.log(logTypes.INFO, `PATCH /note response: ${JSON.stringify(newValues)}`);
                 response.json({values: newValues});
             } else {
-                logger.log(logTypes.ERROR, `PATCH /note failed, ${res}`);
+                logger.log(logTypes.ERROR, `PATCH /note failed, ${JSON.stringify(res)}`);
                 response.status(204).json({message: "Nothing has been modified!"});
             }
         });

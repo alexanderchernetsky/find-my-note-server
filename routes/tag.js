@@ -12,7 +12,7 @@ const logTypes = require("../logging/logTypes");
 tagRoutes.route("/tags").get(authorization, (req, res) => {
     const dbConnect = dbo.getDb("find_my_note_db");
 
-    const userId = req.query.userId;
+    const userId = req.query.user_id;
 
     if (!userId) {
         logger.log(logTypes.ERROR, "Failed attempt to fetch tags. Field user_id is required to fetch tags!");
