@@ -2,21 +2,19 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcryptjs');
 
-const dbo = require("../db/connection");
 const logger = require("../logging");
 const logTypes = require("../logging/logTypes");
 const validator = require("../validation/validator");
 const validateResourceMW = require("../validation/middleware");
+const getServiceInstance = require("../db/service");
 
 const loginRoutes = express.Router();
 
 
-loginRoutes.post('/register', validateResourceMW(validator.registerSchema),(request, response) => {
+loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (request, response) => {
     const email = request.body.email;
     const password = request.body.password;
     const userName = request.body.user_name;
-
-    const db = dbo.getDb("find_my_note_db");
 
     const salt = bcrypt.genSaltSync(10); // A salt is a random string that makes the hash unpredictable.
     // By hashing a plain text password plus a salt, the hash algorithm’s output is no longer predictable.
@@ -29,27 +27,22 @@ loginRoutes.post('/register', validateResourceMW(validator.registerSchema),(requ
         userName
     };
 
-    db
-        .collection("users")
-        .findOne({ email: email })
+    getServiceInstance().checkUserEmail(email)
         .then(user => {
             if (user) {
-                return response.status(400).json({ message: "User with such email already exists!" });
+                return response.status(400).json({message: "User with such email already exists!"});
             }
         })
         .catch(error => {
-            logger.log(logTypes.ERROR, `Failed  to find user by email in the DB. ${error}`);
+            logger.log(logTypes.ERROR, `${error}`);
         });
 
-    db
-        .collection("users")
-        .insertOne(newUser, (error, res) => {
-            if (error) {
-                logger.log(logTypes.ERROR, `Failed  to insert a new user in the DB. ${error}`);
-                throw error;
-            }
-            logger.log(logTypes.INFO, `POST /register success. User: ${newUser.userName}. Email: ${newUser.email}`);
-            response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
+    getServiceInstance().createNewUser(newUser)
+        .then(() => {
+            return response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
+        })
+        .catch(error => {
+            logger.log(logTypes.ERROR, `${error}`);
         });
 });
 
@@ -57,18 +50,12 @@ loginRoutes.post("/login", validateResourceMW(validator.loginSchema), (req, res)
     const email = req.body.email;
     const password = req.body.password;
 
-    const db = dbo.getDb("find_my_note_db");
-
-    db
-        .collection("users")
-        .findOne({ email: email })
+    getServiceInstance().checkUserEmail(email)
         .then(user => {
             // if user does not exist then return status 400
             if (!user) {
-                logger.log(logTypes.ERROR, "Failed attempt to login. User with such email does not exist!");
                 return res.status(400).json({ message: "User with such email does not exist!" })
             }
-
             // if user exist - compares passwords
             // 'password' comes from the FE request
             // 'user.password' comes from the database

@@ -6,20 +6,14 @@ const moment = require("moment");
 // The router will be added as a middleware and will take control of requests starting with path /note or /notes.
 const noteRoutes = express.Router();
 
-// This will help us connect to the database
-const dbo = require("../db/connection");
-
-// should be added to each api route to check the token
-const authorization = require("../auth/authorization");
 const logger = require("../logging");
 const logTypes = require("../logging/logTypes");
 const validator = require("../validation/validator");
 const validateResourceMW = require("../validation/middleware");
+const getServiceInstance = require("../db/service");
 
 // This section will help you GET a list of all the notes.
 noteRoutes.route("/notes").get(validateResourceMW(validator.getNotesSchema, true), async (req, res) => {
-    const dbConnect = dbo.getDb("find_my_note_db");
-
     const userId = req.query.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -38,42 +32,27 @@ noteRoutes.route("/notes").get(validateResourceMW(validator.getNotesSchema, true
         dbQuery = { $and: [{tags: `#${tag}`}, {"user_id": userId}] }
     }
 
-    const response = {
-        notes: [],
-        totalNotes: 0,
-        totalPages: 0,
-        currentPage: page,
-        perPage: limit
-    };
-
     let sortOrder = -1; // desc
 
     if (req.query.sortBy === 'date' && req.query.sortOrder === 'asc') {
         sortOrder = 1;
     }
 
-    const totalNotes = await dbConnect
-        .collection("notes")
-        .find(dbQuery)
-        .count();
+    const totalNotes = await getServiceInstance().getTotalNotesCount(dbQuery);
 
-    response.totalNotes = totalNotes;
-    response.totalPages = Math.ceil(totalNotes / limit);
+    const data = {
+        notes: [],
+        totalNotes,
+        totalPages: Math.ceil(totalNotes / limit),
+        currentPage: page,
+        perPage: limit
+    };
 
-    dbConnect
-        .collection("notes")
-        .find(dbQuery)
-        .sort({"last_updated": sortOrder})
-        .skip(startPage)
-        .limit(limit)
-        .toArray((error, result) => {
-            if (error) {
-                logger.log(logTypes.ERROR, `Failed to get notes from the DB: ${error}`);
-                throw error;
-            }
-            response.notes = result;
-            logger.log(logTypes.INFO, `GET /notes response: ${JSON.stringify(response)}`);
-            res.json(response);
+    getServiceInstance().getNotes(dbQuery, sortOrder, startPage, limit)
+        .then(result => {
+            data.notes = result;
+            logger.log(logTypes.INFO, `GET /notes response: ${JSON.stringify(data)}`);
+            res.json(data);
         });
 });
 
