@@ -11,7 +11,7 @@ const validator = require("../validation/validator");
 const validateResourceMW = require("../validation/middleware");
 
 // This API route will help you GET a list of all the unique tags.
-tagRoutes.route("/tags").get(authorization, validateResourceMW(validator.tagSchema, true),(request, response) => {
+tagRoutes.route("/tags").get(validateResourceMW(validator.tagSchema, true),(request, response) => {
     const dbConnect = dbo.getDb("find_my_note_db");
 
     const userId = request.query.user_id;

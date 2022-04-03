@@ -17,7 +17,7 @@ const validator = require("../validation/validator");
 const validateResourceMW = require("../validation/middleware");
 
 // This section will help you GET a list of all the notes.
-noteRoutes.route("/notes").get(authorization, validateResourceMW(validator.getNotesSchema, true), async (req, res) => {
+noteRoutes.route("/notes").get(validateResourceMW(validator.getNotesSchema, true), async (req, res) => {
     const dbConnect = dbo.getDb("find_my_note_db");
 
     const userId = req.query.user_id;
@@ -106,7 +106,7 @@ const getNextCount= async (userId) => {
 }
 
 // This section will help you CREATE a new note.
-noteRoutes.route("/note").post(authorization, validateResourceMW(validator.noteSchema), async (req, response) => {
+noteRoutes.route("/note").post(validateResourceMW(validator.noteSchema), async (req, response) => {
     const dbConnect = dbo.getDb();
 
     const userId = req.body.user_id;
@@ -153,7 +153,7 @@ noteRoutes.route("/note").post(authorization, validateResourceMW(validator.noteS
 
 
 // This section will help you UPDATE a note by id.
-    noteRoutes.route("/note/:id").patch(authorization, validateResourceMW(validator.noteSchema), (request, response) => {
+    noteRoutes.route("/note/:id").patch(validateResourceMW(validator.noteSchema), (request, response) => {
     const dbConnect = dbo.getDb();
 
     const userId = request.body.user_id;
@@ -197,7 +197,7 @@ noteRoutes.route("/note").post(authorization, validateResourceMW(validator.noteS
 
 
 // This section will help you DELETE a note
-noteRoutes.route("/note/:id").delete(authorization, validateResourceMW(validator.deleteNoteSchema, true), (request, response) => {
+noteRoutes.route("/note/:id").delete(validateResourceMW(validator.deleteNoteSchema, true), (request, response) => {
     const dbConnect = dbo.getDb();
 
     const userId = request.query.user_id;

@@ -15,7 +15,8 @@ const authorization = (request, response, next) => {
     }
     try {
         const data = jwt.verify(token, process.env.JWT_SECRET);
-        request.userId = data.login;
+        request.email = data.email;
+        logger.log(logTypes.INFO, `Authorization success. User email: ${data.email}`);
         return next();
     } catch (error) {
         logger.log(logTypes.ERROR, `Authorization error. ${error}`); // e.g. TokenExpiredError

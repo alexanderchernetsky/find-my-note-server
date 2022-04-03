@@ -23,8 +23,11 @@ app.use(express.json());
 // use cookie parser, should go before api routes
 app.use(cookieParser());
 
-// use API routes
+// API routes without authorization
 app.use(require("./routes/login"));
+// use authorization
+app.use(require("./auth/authorization"));
+// API routes with authorization
 app.use(require("./routes/note"));
 app.use(require("./routes/tag"));
 
