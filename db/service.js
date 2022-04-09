@@ -1,7 +1,7 @@
 const dbo = require("./connection");
 const logger = require("../logging");
 const logTypes = require("../logging/logTypes");
-const getNotesDBQuery = require("./getDBQuery");
+const getNotesDBQuery = require("./getNotesDBQuery");
 
 class DatabaseService {
     databaseInstance;
@@ -148,6 +148,21 @@ class DatabaseService {
                 });
         });
     };
+
+    getTags(userId) {
+        const dbQuery = {"user_id": userId};
+
+        return new Promise((resolve, reject) => {
+            this.databaseInstance.collection("notes")
+                .distinct("tags", dbQuery, (error, result) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result);
+                    }
+                });
+        });
+    }
 }
 
 let DBServiceInstance;
