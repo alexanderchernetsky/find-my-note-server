@@ -1,6 +1,7 @@
 const dbo = require("./connection");
 const logger = require("../logging");
 const logTypes = require("../logging/logTypes");
+const getNotesDBQuery = require("./getDBQuery");
 
 class DatabaseService {
     databaseInstance;
@@ -12,12 +13,7 @@ class DatabaseService {
     checkUserEmail(email) {
         return this.databaseInstance.collection("users")
             .findOne({ email: email })
-            .then(user => {
-                if (!user) {
-                    logger.log(logTypes.INFO, "User with such email does not exist!");
-                }
-                return user;
-            })
+            .then(user => user)
             .catch(error => {
                 logger.log(logTypes.ERROR, `Failed to find user by email in the DB. ${error}`);
                 throw error;
@@ -37,7 +33,9 @@ class DatabaseService {
             });
     };
 
-    getTotalNotesCount(query) {
+    getTotalNotesCount(userId, searchString, tag) {
+        const query = getNotesDBQuery(userId, searchString, tag);
+
         return this.databaseInstance.collection("notes")
             .find(query)
             .count()
@@ -48,8 +46,10 @@ class DatabaseService {
             });
     };
 
-    getNotes(query, sortOrder, startPage, limit) {
-        return new Promise((resolve) => {
+    getNotes(userId, searchString, tag, sortOrder, startPage, limit) {
+        const query = getNotesDBQuery(userId, searchString, tag);
+
+        return new Promise((resolve, reject) => {
             this.databaseInstance.collection("notes")
                 .find(query)
                 .sort({"last_updated": sortOrder})
@@ -57,11 +57,94 @@ class DatabaseService {
                 .limit(limit)
                 .toArray((error, result) => {
                     if (error) {
-                        logger.log(logTypes.ERROR, `Failed to get notes from the DB: ${error}`);
-                        throw error;
+                        reject(error);
                     }
 
                     resolve(result);
+                });
+        });
+    };
+
+    getNextNoteCount(userId) {
+        return this.databaseInstance.collection("note_counter")
+            .findOne({_id: userId})
+            .then(user => {
+                if (user) {
+                    return this.databaseInstance.collection("note_counter").findOneAndUpdate(
+                        {_id: userId},
+                        {$inc: {count: 1}}
+                    ).then(response => {
+                        return response.value.count + 1;
+                    })
+                    .catch(error => {
+                        logger.log(logTypes.ERROR, `Failed to increment the counter: ${error}`);
+                    });
+                } else {
+                    return this.databaseInstance.collection("note_counter").insertOne(
+                        {
+                            _id: userId,
+                            count: 1
+                        }
+                    )
+                        .then(() => {
+                            return 1;
+                        })
+                        .catch(error => {
+                            logger.log(logTypes.ERROR, `Failed to create a new counter: ${error}`);
+                        });
+                }
+            })
+            .catch(error => {
+                logger.log(logTypes.ERROR, `Failed to get next note count: ${error}`);
+            });
+    };
+
+    addNewNote(newNote) {
+        return this.databaseInstance.collection("notes")
+            .insertOne(newNote)
+            .then(() => {
+                return newNote;
+            })
+            .catch(error => error);
+    };
+
+    updateExistingNote(noteId, userId, newValues) {
+        const findQuery = { $and: [{"note_id": noteId}, {"user_id": userId}] };
+        const setValuesQuery = {
+            $set: newValues,
+        };
+
+        return new Promise((resolve, reject) => {
+            this.databaseInstance.collection("notes")
+                .updateOne(findQuery, setValuesQuery, (error, response) => {
+                    if (error) {
+                        logger.log(logTypes.ERROR, `Failed attempt to update a note in DB: ${error}`);
+                        throw error;
+                    }
+                    if (response.acknowledged && response.matchedCount && response.modifiedCount) {
+                        resolve({values: newValues});
+                    } else {
+                        reject({message: "Nothing has been modified!"});
+                    }
+                });
+        })};
+
+    deleteNote(noteId, userId) {
+        const findQuery = { $and: [{"note_id": noteId}, {"user_id": userId}] };
+
+        return new Promise((resolve, reject) => {
+            this.databaseInstance.collection("notes")
+                .deleteOne(findQuery, (error, response) => {
+                    if (error) {
+                        logger.log(logTypes.ERROR, `Failed attempt to DELETE a note in DB: ${error}`);
+                        throw error;
+                    }
+
+                    if (response.deletedCount) {
+                        resolve(response);
+                    } else {
+                        reject();
+                    }
                 });
         });
     };

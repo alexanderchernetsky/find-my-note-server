@@ -12,9 +12,7 @@ const loginRoutes = express.Router();
 
 
 loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (request, response) => {
-    const email = request.body.email;
-    const password = request.body.password;
-    const userName = request.body.user_name;
+    const {email, password, user_name:userName } = request.body;
 
     const salt = bcrypt.genSaltSync(10); // A salt is a random string that makes the hash unpredictable.
     // By hashing a plain text password plus a salt, the hash algorithm’s output is no longer predictable.
@@ -30,7 +28,9 @@ loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (req
     getServiceInstance().checkUserEmail(email)
         .then(user => {
             if (user) {
-                return response.status(400).json({message: "User with such email already exists!"});
+                response.status(400).json({message: "User with such email already exists!"});
+            } else {
+                logger.log(logTypes.INFO, "OK. User with such email does not exist!");
             }
         })
         .catch(error => {
@@ -39,7 +39,7 @@ loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (req
 
     getServiceInstance().createNewUser(newUser)
         .then(() => {
-            return response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
+            response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
         })
         .catch(error => {
             logger.log(logTypes.ERROR, `${error}`);
@@ -47,8 +47,7 @@ loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (req
 });
 
 loginRoutes.post("/login", validateResourceMW(validator.loginSchema), (req, res) => {
-    const email = req.body.email;
-    const password = req.body.password;
+    const {email, password} = req.body;
 
     getServiceInstance().checkUserEmail(email)
         .then(user => {
