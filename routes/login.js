@@ -28,7 +28,7 @@ loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (req
     getServiceInstance().checkUserEmail(email)
         .then(user => {
             if (user) {
-                response.status(400).json({message: "User with such email already exists!"});
+                return response.status(400).json({message: "User with such email already exists!"});
             } else {
                 logger.log(logTypes.INFO, "OK. User with such email does not exist!");
             }
@@ -39,7 +39,7 @@ loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (req
 
     getServiceInstance().createNewUser(newUser)
         .then(() => {
-            response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
+            return response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
         })
         .catch(error => {
             logger.log(logTypes.ERROR, `${error}`);

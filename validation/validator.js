@@ -13,6 +13,8 @@ const NOTE_HEADING_MIN_LENGTH = 5;
 const NOTE_HEADING_MAX_LENGTH = 100;
 const NOTE_TEXT_MIN_LENGTH = 10;
 const NOTE_TEXT_MAX_LENGTH = 10000;
+const TAGS_ARRAY_MIN_LENGTH = 1;
+const TAGS_ARRAY_MAX_LENGTH = 10;
 
 const getLengthValidationMessage = (fieldName, min, max) => `${fieldName} should contain between ${min} and ${max} characters`;
 const getNumberValidationMessage = (fieldName, min, max) => `${fieldName} should be a number from ${min} to ${max}`;
@@ -52,7 +54,7 @@ const noteSchema = yup.object().shape({
     user_id: userIdValidationRules,
     heading: yup.string().min(NOTE_HEADING_MIN_LENGTH, headingLengthValidationMsg).max(NOTE_HEADING_MAX_LENGTH, headingLengthValidationMsg),
     text: yup.string().min(NOTE_TEXT_MIN_LENGTH, noteTextLengthValidationMsg).max(NOTE_TEXT_MAX_LENGTH, noteTextLengthValidationMsg),
-    tags: yup.array().min(1, 'Tags array should contain at least 1 tag').max(10, 'Tags array should contain less than 10 tags'),
+    tags: yup.array().min(TAGS_ARRAY_MIN_LENGTH, 'Tags array should contain at least 1 tag').max(TAGS_ARRAY_MAX_LENGTH, 'Tags array should contain less than 10 tags'),
 });
 
 const deleteNoteSchema = yup.object().shape({
