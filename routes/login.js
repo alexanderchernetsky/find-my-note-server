@@ -77,7 +77,7 @@ loginRoutes.post("/login", validateResourceMW(validator.loginSchema), (req, res)
                         .cookie("access_token", token, {
                             httpOnly: true, // the httpOnly flag ensures that no client-side script can access the cookie other than the server.
                             secure: process.env.NODE_ENV === "production", // The secure flag ensures that cookie information is sent to the server with an encrypted request over the HTTPS protocol.
-                            // todo: return this line sameSite: "none"
+                            sameSite: "none"
                         })
                         .status(200)
                         .json({message: "Logged in successfully!", user: {email: user.email, user_name: user.user_name, id: user._id}});
