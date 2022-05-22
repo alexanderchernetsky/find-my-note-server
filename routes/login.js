@@ -28,6 +28,7 @@ loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (req
     getServiceInstance().checkUserEmail(email)
         .then(user => {
             if (user) {
+                logger.log(logTypes.INFO, "Registration failed. User with such email already exists!");
                 return response.status(400).json({message: "User with such email already exists!"});
             } else {
                 logger.log(logTypes.INFO, "OK. User with such email does not exist!");
