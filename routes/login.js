@@ -31,15 +31,15 @@ loginRoutes.post('/register', validateResourceMW(validator.registerSchema), (req
                 return response.status(400).json({message: "User with such email already exists!"});
             } else {
                 logger.log(logTypes.INFO, "OK. User with such email does not exist!");
-            }
-        })
-        .catch(error => {
-            logger.log(logTypes.ERROR, `${error}`);
-        });
 
-    getServiceInstance().createNewUser(newUser)
-        .then(() => {
-            return response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
+                getServiceInstance().createNewUser(newUser)
+                    .then(() => {
+                        return response.json({email: newUser.email, user: newUser.userName, id: newUser._id});
+                    })
+                    .catch(error => {
+                        logger.log(logTypes.ERROR, `${error}`);
+                    });
+            }
         })
         .catch(error => {
             logger.log(logTypes.ERROR, `${error}`);
