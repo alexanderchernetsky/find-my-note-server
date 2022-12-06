@@ -2,6 +2,7 @@ const dbo = require("./connection");
 const logger = require("../logging");
 const logTypes = require("../logging/logTypes");
 const getNotesDBQuery = require("./getNotesDBQuery");
+const db = require("./connection");
 
 class DatabaseService {
     databaseInstance;
@@ -10,7 +11,19 @@ class DatabaseService {
         this.databaseInstance = dbo.getDb("find_my_note_db");
     }
 
+    connectToDB() {
+        db.connectToServer((error) => {
+            if (error) {
+                logger.log(logTypes.ERROR, `Error when connecting to the db: ${error}`);
+            }
+        });
+    }
+
     checkUserEmail(email) {
+        if (!this.databaseInstance) {
+            this.connectToDB();
+        }
+
         return this.databaseInstance.collection("users")
             .findOne({ email: email })
             .then(user => user)
