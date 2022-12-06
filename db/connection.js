@@ -14,6 +14,7 @@ let _db;
 
 module.exports = {
     connectToServer: (callback) => {
+        logger.log(logTypes.INFO, "Connecting to the DB...");
         client.connect( (err, db) => {
             // Verify we got a good "db" object
             if (db) {
