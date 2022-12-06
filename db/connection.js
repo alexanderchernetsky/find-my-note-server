@@ -13,12 +13,23 @@ const client = new MongoClient(uri, {
 let _db;
 
 module.exports = {
+    connectToServerAsync: async () => {
+        logger.log(logTypes.INFO, "Connecting to the DB... (connectToServerAsync function)");
+        return client.connect()
+            .then((db) => {
+                if (db) {
+                    _db = db.db("find_my_note_db");
+                    logger.log(logTypes.INFO, "Successfully connected to MongoDB.");
+                }
+            })
+            .catch((error) => {
+                logger.log(logTypes.ERROR, `Error when connecting to the db: ${error}`);
+            });
+    },
+
     connectToServer: (callback) => {
         logger.log(logTypes.INFO, "Connecting to the DB...");
-        console.log("client", client);
         client.connect( (err, db) => {
-            console.log("err", err);
-            console.log("db", db);
             // Verify we got a good "db" object
             if (db) {
                 _db = db.db("find_my_note_db");

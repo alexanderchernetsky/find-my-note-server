@@ -11,15 +11,15 @@ class DatabaseService {
         this.databaseInstance = dbo.getDb("find_my_note_db");
     }
 
-    connectToDB() {
-        db.connectToServer((error) => {
+     async connectToDB() {
+         await db.connectToServerAsync((error) => {
             if (error) {
                 logger.log(logTypes.ERROR, `Error when connecting to the db: ${error}`);
             }
         });
     }
 
-    checkUserEmail(email) {
+     checkUserEmail(email) {
         if (!this.databaseInstance) {
             this.connectToDB();
         }
