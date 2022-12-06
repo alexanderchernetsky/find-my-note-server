@@ -15,7 +15,8 @@ let _db;
 module.exports = {
     connectToServerAsync: () => {
         logger.log(logTypes.INFO, "Connecting to the DB... (connectToServerAsync function)");
-        return client.connect()
+        return client
+            .connect()
             .then((db) => {
                 if (db) {
                     _db = db.db("find_my_note_db");
