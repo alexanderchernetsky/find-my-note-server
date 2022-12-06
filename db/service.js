@@ -12,16 +12,16 @@ class DatabaseService {
     }
 
      async connectToDB() {
-         await db.connectToServerAsync((error) => {
+         return await db.connectToServerAsync((error) => {
             if (error) {
                 logger.log(logTypes.ERROR, `Error when connecting to the db: ${error}`);
             }
         });
     }
 
-     checkUserEmail(email) {
+     async checkUserEmail(email) {
         if (!this.databaseInstance) {
-            this.connectToDB();
+            await this.connectToDB();
         }
 
         return this.databaseInstance.collection("users")

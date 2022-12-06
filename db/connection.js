@@ -13,7 +13,7 @@ const client = new MongoClient(uri, {
 let _db;
 
 module.exports = {
-    connectToServerAsync: async () => {
+    connectToServerAsync: () => {
         logger.log(logTypes.INFO, "Connecting to the DB... (connectToServerAsync function)");
         return client.connect()
             .then((db) => {
