@@ -13,7 +13,11 @@ const loginRoute = express.Router();
 loginRoute.post("/login", validateResourceMW(validator.loginSchema), (req, res) => {
     const {email, password} = req.body;
 
-    getServiceInstance().checkUserEmail(email)
+    const instance = getServiceInstance();
+
+    console.log("instance", instance);
+
+    instance.checkUserEmail(email)
         .then(user => {
             // if user does not exist then return status 400
             if (!user) {
