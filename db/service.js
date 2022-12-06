@@ -23,7 +23,7 @@ class DatabaseService {
     }
 
      async checkUserEmail(email) {
-        this.checkDatabaseConnection();
+        await this.checkDatabaseConnection();
 
         return this.databaseInstance.collection("users")
             .findOne({ email: email })
@@ -35,8 +35,8 @@ class DatabaseService {
     };
 
 
-    createNewUser(newUser) {
-        this.checkDatabaseConnection();
+    async createNewUser(newUser) {
+        await this.checkDatabaseConnection();
 
         return this.databaseInstance.collection("users")
             .insertOne(newUser)
@@ -49,8 +49,8 @@ class DatabaseService {
             });
     };
 
-    getTotalNotesCount(userId, searchString, tag) {
-        this.checkDatabaseConnection();
+    async getTotalNotesCount(userId, searchString, tag) {
+        await this.checkDatabaseConnection();
 
         const query = getNotesDBQuery(userId, searchString, tag);
 
@@ -64,8 +64,8 @@ class DatabaseService {
             });
     };
 
-    getNotes(userId, searchString, tag, sortOrder, startPage, limit) {
-        this.checkDatabaseConnection();
+    async getNotes(userId, searchString, tag, sortOrder, startPage, limit) {
+        await this.checkDatabaseConnection();
 
         const query = getNotesDBQuery(userId, searchString, tag);
 
@@ -85,8 +85,8 @@ class DatabaseService {
         });
     };
 
-    getNextNoteCount(userId) {
-        this.checkDatabaseConnection();
+    async getNextNoteCount(userId) {
+        await this.checkDatabaseConnection();
 
         return this.databaseInstance.collection("note_counter")
             .findOne({_id: userId})
@@ -121,8 +121,8 @@ class DatabaseService {
             });
     };
 
-    addNewNote(newNote) {
-        this.checkDatabaseConnection();
+    async addNewNote(newNote) {
+        await this.checkDatabaseConnection();
 
         return this.databaseInstance.collection("notes")
             .insertOne(newNote)
@@ -132,8 +132,8 @@ class DatabaseService {
             .catch(error => error);
     };
 
-    updateExistingNote(noteId, userId, newValues) {
-        this.checkDatabaseConnection();
+    async updateExistingNote(noteId, userId, newValues) {
+        await this.checkDatabaseConnection();
 
         const findQuery = { $and: [{"note_id": noteId}, {"user_id": userId}] };
         const setValuesQuery = {
@@ -155,8 +155,8 @@ class DatabaseService {
                 });
         })};
 
-    deleteNote(noteId, userId) {
-        this.checkDatabaseConnection();
+    async deleteNote(noteId, userId) {
+        await this.checkDatabaseConnection();
 
         const findQuery = { $and: [{"note_id": noteId}, {"user_id": userId}] };
 
@@ -177,8 +177,8 @@ class DatabaseService {
         });
     };
 
-    getTags(userId) {
-        this.checkDatabaseConnection();
+    async getTags(userId) {
+        await this.checkDatabaseConnection();
 
         const dbQuery = {"user_id": userId};
 

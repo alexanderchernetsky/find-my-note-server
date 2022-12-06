@@ -24,6 +24,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // API routes without authorization
+app.use(require("./routes/healthcheck"));
 app.use(require("./routes/login"));
 app.use(require("./routes/logout"));
 app.use(require("./routes/register"));
