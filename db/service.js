@@ -12,6 +12,7 @@ class DatabaseService {
     }
 
     connectToDB() {
+        logger.log(logTypes.INFO, `connectToDB method called`);
         db.connectToServer((error) => {
             if (error) {
                 logger.log(logTypes.ERROR, `Error when connecting to the db: ${error}`);
