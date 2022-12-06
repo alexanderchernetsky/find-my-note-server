@@ -25,6 +25,8 @@ app.use(cookieParser());
 
 // API routes without authorization
 app.use(require("./routes/login"));
+app.use(require("./routes/logout"));
+app.use(require("./routes/register"));
 // use authorization
 app.use(require("./auth/authorization"));
 // API routes with authorization
