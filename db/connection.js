@@ -16,6 +16,8 @@ module.exports = {
     connectToServer: (callback) => {
         logger.log(logTypes.INFO, "Connecting to the DB...");
         client.connect( (err, db) => {
+            console.log("err", err);
+            console.log("db", db);
             // Verify we got a good "db" object
             if (db) {
                 _db = db.db("find_my_note_db");
