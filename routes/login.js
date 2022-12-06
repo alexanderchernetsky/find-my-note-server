@@ -67,16 +67,16 @@ loginRoutes.post("/login", validateResourceMW(validator.loginSchema), (req, res)
                     }
                     // if both match than you can do anything
                     if (data) {
-                        const token = jwt.sign({
+                        const jwt_token = jwt.sign({
                             email,
                             password
                         }, process.env.JWT_SECRET, {
-                            expiresIn: 60 * 60 * 2 // seconds*minutes*hours, 2 hours in this case
+                            expiresIn: 60 * 60 * 12 // seconds*minutes*hours, 12 hours in this case
                         }); // JWT is way for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed.
 
                         logger.log(logTypes.INFO, `Logged in successfully! User: ${user.user_name}. Email: ${user.email}`);
                         return res
-                            .cookie("access_token", token, {
+                            .cookie("access_token", jwt_token, {
                                 httpOnly: true, // the httpOnly flag ensures that no client-side script can access the cookie other than the server.
                                 secure: process.env.NODE_ENV === "production", // The secure flag ensures that cookie information is sent to the server with an encrypted request over the HTTPS protocol.
                                 sameSite: "none"
