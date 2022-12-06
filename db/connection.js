@@ -14,7 +14,7 @@ let _db;
 
 module.exports = {
     connectToServerAsync: () => {
-        logger.log(logTypes.INFO, "Connecting to the DB... (connectToServerAsync function)");
+        logger.log(logTypes.INFO, "Re-connecting to the DB... (connectToServerAsync)");
         return client
             .connect()
             .then((db) => {

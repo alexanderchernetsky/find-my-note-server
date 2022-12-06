@@ -9,7 +9,7 @@ healthcheckRoute.get("/", (request, response) => {
     logger.log(logTypes.INFO, 'Healthcheck route was called!');
     return response
         .status(200)
-        .json({ message: "Service is alive!" });
+        .json({ message: "The service is alive!" });
 });
 
 module.exports = healthcheckRoute;

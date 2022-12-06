@@ -16,6 +16,7 @@ class DatabaseService {
     }
 
     async checkDatabaseConnection() {
+        // vercel uses serverless functions, so we need to check if the connection is still alive
         if (!this.databaseInstance) {
             await this.connectToDB();
             this.databaseInstance = dbo.getDb("find_my_note_db");
