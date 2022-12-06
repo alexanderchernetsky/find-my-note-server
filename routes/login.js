@@ -41,7 +41,7 @@ loginRoute.post("/login", validateResourceMW(validator.loginSchema), (req, res) 
                         return res
                             .cookie("access_token", jwt_token, {
                                 httpOnly: true, // the httpOnly flag ensures that no client-side script can access the cookie other than the server.
-                                secure: process.env.NODE_ENV === "production", // The secure flag ensures that cookie information is sent to the server with an encrypted request over the HTTPS protocol.
+                                secure: true,
                                 sameSite: "none"
                             })
                             .status(200)
