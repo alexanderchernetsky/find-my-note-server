@@ -30,7 +30,7 @@ loginRoute.post("/login", validateResourceMW(validator.loginSchema), (req, res) 
                         logger.log(logTypes.ERROR, `bcrypt error, ${error}`);
                         throw error;
                     }
-                    // if both match than you can do anything
+                    // if both match
                     if (data) {
                         const jwt_token = jwt.sign({
                             email,
@@ -39,7 +39,7 @@ loginRoute.post("/login", validateResourceMW(validator.loginSchema), (req, res) 
                             expiresIn: 60 * 60 * 12 // seconds*minutes*hours, 12 hours in this case
                         }); // JWT is way for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed.
 
-                        logger.log(logTypes.INFO, `Logged in successfully! User: ${user.user_name}. Email: ${user.email}`);
+                        logger.log(logTypes.INFO, `Logged in successfully! User: ${user.userName}. Email: ${user.email}`);
                         return res
                             .cookie("access_token", jwt_token, {
                                 httpOnly: true, // the httpOnly flag ensures that no client-side script can access the cookie other than the server.
@@ -47,7 +47,7 @@ loginRoute.post("/login", validateResourceMW(validator.loginSchema), (req, res) 
                                 sameSite: "none"
                             })
                             .status(200)
-                            .json({message: "Logged in successfully!", user: {email: user.email, user_name: user.user_name, id: user._id}});
+                            .json({message: "Logged in successfully!", user: {email: user.email, user_name: user.userName, id: user._id}});
 
                     } else {
                         logger.log(logTypes.ERROR, 'Failed to login. Invalid credentials!');
