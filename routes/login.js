@@ -43,9 +43,9 @@ loginRoute.post("/login", validateResourceMW(validator.loginSchema), (req, res) 
                         return res
                             .cookie("access_token", jwt_token, {
                                 httpOnly: true, // the httpOnly flag ensures that no client-side script can access the cookie other than the server.
-                                secure: true,
-                                sameSite: "none"
-                            })
+                                secure: true, // The Secure flag is used to declare that the cookie may only be transmitted using a secure connection (SSL/HTTPS). The browser will never send the cookie if the connection is HTTP
+                                sameSite: "strict" // none value won’t give any kind of protection. The browser attaches the cookies in all cross-site browsing contexts.
+                            }) // SameSite strict prevents the browser from sending this cookie along with cross-site requests.
                             .status(200)
                             .json({message: "Logged in successfully!", user: {email: user.email, user_name: user.userName, id: user._id}});
 
