@@ -4,7 +4,8 @@ const logTypes = require('../logging/logTypes');
 const logger = require("../logging");
 
 const authorization = (request, response, next) => {
-    const token = request.cookies.access_token;
+    const authHeader = request.headers.authorization;
+    const token = authHeader.split(' ')[1]; // Bearer <token>
 
     if (!token) {
         logger.log(logTypes.ERROR, "Authorization failed. No authorization token!");
@@ -19,6 +20,7 @@ const authorization = (request, response, next) => {
         logger.log(logTypes.INFO, `Authorization success. User email: ${data.email}`);
         return next();
     } catch (error) {
+        // todo: send some info to the FE when it's TokenExpiredError
         logger.log(logTypes.ERROR, `Authorization error. ${error}`); // e.g. TokenExpiredError
         return response.sendStatus(401);
     }
